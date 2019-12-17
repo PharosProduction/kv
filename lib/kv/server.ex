@@ -25,8 +25,8 @@ defmodule KV.Server do
     GenServer.cast(__MODULE__, {:put, value, key, table_name})
   end
 
-  def get(key, table_name) do
-    GenServer.call(__MODULE__, {:get, key, table_name})
+  def get(key, table_name, default) do
+    GenServer.call(__MODULE__, {:get, key, table_name, default})
   end
 
   def delete(key, table_name) do
@@ -42,11 +42,11 @@ defmodule KV.Server do
   end
 
   @impl true
-  def handle_call({:get, key, table_name}, _from, state) do
+  def handle_call({:get, key, table_name, default}, _from, state) do
     with [{_key, value}] <- Ets.lookup(table_name, key) do
       {:reply, {:ok, value}, state}
     else
-      [] -> {:reply, {:ok, nil}, state}
+      [] -> {:reply, {:ok, default}, state}
       [_head | _tail] -> {:reply, {:error, :corrupted}, state}
     end
   end
